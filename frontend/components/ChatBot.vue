@@ -1,64 +1,71 @@
 <template>
-  <!-- Integral Box -->
-  <div
-    class="fixed flex flex-col bottom-8 right-8 z-50 bg-zinc-100 chat-shadow rounded-4xl overflow-hidden transition-all duration-300 ease-in-out"
-    :class="{
-      'h-[max(60vh,450px)] w-[max(25vw,350px)]': isOpen,
-      'h-16 w-16': !isOpen,
-    }"
-  >
-    <!-- Floating Button -->
+  <div class="fixed bottom-8 right-8 min-h-22 group flex items-end">
+    <!-- Integral Box -->
     <div
-      class="absolute size-16 min-w-16 rounded-full flex items-center justify-center border-2 border-zinc-300 transition-all duration-300 ease-in-out"
+      class="relative flex flex-col z-50 bg-zinc-100 chat-shadow rounded-4xl overflow-hidden transition-all duration-300 ease-in-out"
       :class="{
-        'top-0 left-0 hover:scale-105 cursor-pointer': !isOpen,
-        'top-3 left-6': isOpen,
+        'h-[max(60vh,450px)] w-[max(30vw,450px)]': isOpen,
+        'size-18': !isOpen,
+        'animate-bounce group-hover:animate-none': isFirstOpen,
+        // 'animate-custom-floating-btn group-hover:no-animation': isFirstOpen,
       }"
-      @click="openChatbot"
     >
-      <NuxtImg
-        src="/j2klogo.png"
-        alt="Assistant J2K"
-        width="400"
-        height="400"
-        class="rounded-full"
-      />
-    </div>
-
-    <!-- Header -->
-    <div class="flex items-center gap-2 header-shadow px-6 py-3">
-      <!-- Placeholder Icon -->
-      <div class="size-16 min-w-16" />
-      <!-- Badge -->
-      <div class="flex flex-col">
-        <span class="text-sm font-bold text-zinc-800">Assistant J2K</span>
-        <span class="text-xs text-zinc-500"
-          >Powered by
-          <span class="text-orange-500 font-semibold">Mistral7B</span></span
-        >
-      </div>
-      <button
-        class="cursor-pointer ml-auto flex items-center justify-center text-zinc-500 hover:text-zinc-800"
-        @click="closeChatbot"
+      <!-- Floating Button -->
+      <div
+        class="absolute rounded-full flex items-center justify-center border-2 border-zinc-300 transition-all duration-300 ease-in-out"
+        :class="{
+          'top-0 left-0 hover:scale-105 cursor-pointer size-18 min-w-18':
+            !isOpen,
+          'top-3 left-6 size-16 min-w-16': isOpen,
+        }"
+        @click="openChatbot"
       >
-        <Icon name="maki:cross" size="24" />
-      </button>
-    </div>
+        <NuxtImg
+          src="/j2klogo.png"
+          alt="Assistant J2K"
+          width="400"
+          height="400"
+          class="rounded-full"
+        />
+      </div>
 
-    <!-- Chat Window -->
-    <div
-      class="overflow-y-auto transition-all duration-500 ease-in-out"
-      :class="{ 'opacity-0': !isOpen }"
-    >
-      <ChatContent :messages="messages" />
-    </div>
+      <!-- Header -->
+      <div
+        class="flex items-center gap-2 header-shadow px-6 py-3 transition-all duration-500 ease-in-out"
+        >
+        <!-- Placeholder Icon -->
+        <div class="size-16 min-w-16" />
+        <!-- Badge -->
+        <div class="flex flex-col" :class="{ 'opacity-0': !isOpen }">
+          <span class="text-sm font-bold text-zinc-800">Assistant J2K</span>
+          <span class="text-xs text-zinc-500"
+            >Powered by
+            <span class="text-orange-500 font-semibold">Mistral7B</span></span
+          >
+        </div>
+        <button
+          class="cursor-pointer ml-auto flex items-center justify-center text-zinc-500 hover:text-zinc-800"
+          @click="closeChatbot"
+        >
+          <Icon name="maki:cross" size="24" />
+        </button>
+      </div>
 
-    <!-- Chat bar -->
-    <div
-      class="py-6 px-6 prompt-shadow transition-all duration-500 ease-in-out"
-      :class="{ 'opacity-0': !isOpen }"
-    >
-      <ChatPromptBar v-model:prompt="prompt" :send-message="sendMessage" />
+      <!-- Chat Window -->
+      <div
+        class="overflow-y-auto transition-all duration-500 ease-in-out"
+        :class="{ 'opacity-0': !isOpen }"
+      >
+        <ChatContent :messages="messages" />
+      </div>
+
+      <!-- Chat bar -->
+      <div
+        class="py-6 px-6 prompt-shadow transition-all duration-500 ease-in-out"
+        :class="{ 'opacity-0': !isOpen }"
+      >
+        <ChatPromptBar v-model:prompt="prompt" :send-message="sendMessage" />
+      </div>
     </div>
   </div>
 </template>
@@ -96,6 +103,7 @@ for (let i = 0; i < 10; i++) {
 const prompt = ref("");
 
 const isOpen = ref(false);
+const isFirstOpen = ref(true);
 
 const sendMessage = () => {
   console.log("Sending message:", prompt.value);
@@ -120,6 +128,7 @@ const sendMessage = () => {
 
 const openChatbot = () => {
   console.log("Opening chatbot...");
+  isFirstOpen.value = false;
   isOpen.value = true;
 };
 const closeChatbot = () => {
@@ -139,5 +148,25 @@ const closeChatbot = () => {
 
 .prompt-shadow {
   box-shadow: 0px -2px 4px 0px rgba(0, 0, 0, 0.15);
+}
+
+.animate-custom-floating-btn {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.group:hover .animate-custom-floating-btn {
+  animation: none;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
 }
 </style>
