@@ -58,7 +58,6 @@
       >
         <ChatContent :messages="messages" />
       </div>
-
       <!-- Chat bar -->
       <div
         class="py-6 px-6 prompt-shadow transition-all duration-500 ease-in-out"
@@ -71,27 +70,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Chat } from "~/types/Chat";
 
-const messages = ref<Chat[]>([
-  {
-    message: "Hello, I have a question about your services.",
-    sender: "user",
-  },
-  {
-    message: "Hello! How can I assist you today? <a>https://example.com</a>",
-    sender: "assistant",
-  },
-  {
-    message: "Whats wrong in my code?",
-    sender: "user",
-  },
-  {
-    message:
-      "Il y a plusieurs points potentiels à vérifier dans votre Dockerfile. Voici une analyse :\n\n1. **COPY app/ .** : Assurez-vous que le chemin `app/` est correct et qu'il contient tous les fichiers nécessaires pour que `npm install` fonctionne.\n\n2. **Permissions du script run.sh** : Si le script `/scripts/run.sh` n’est pas exécutable, le conteneur ne pourra pas l’exécuter. Vous pouvez ajouter une commande pour changer les permissions :\n   ```dockerfile\n   RUN chmod +x /scripts/run.sh\n   ```\n\n3. **Avant d'installer `sharp` (commenté)** : Si vous avez besoin de `sharp`, vous devez décommenter cette ligne et vous assurer que vous avez installé toutes les dépendances nécessaires. `sharp` peut nécessiter des bibliothèques spécifiques qui doivent être présentes dans l'image. Vous pouvez utiliser :\n   ```dockerfile\n   RUN apt-get update && apt-get install -y \\\n       libvips-dev \\\n       && npm install --platform=linux --arch=x64 sharp\n   ```\n\n",
-    sender: "assistant",
-  },
-]);
+const chatbotStore = useChatbotStore();
+
+const { messages } = storeToRefs(chatbotStore);
 
 for (let i = 0; i < 10; i++) {
   messages.value.push({
@@ -110,20 +92,21 @@ const sendMessage = () => {
   if (prompt.value.trim() === "") return;
   const message = prompt.value.trim();
   prompt.value = "";
+  chatbotStore.sendMessage(message);
 
-  const newMessage: Chat = {
-    message: message,
-    sender: "user",
-  };
-  messages.value.push(newMessage);
+  // const newMessage: Chat = {
+  //   message: message,
+  //   sender: "user",
+  // };
+  // messages.value.push(newMessage);
 
-  setTimeout(() => {
-    const response: Chat = {
-      message: `You said: "${newMessage.message}"`,
-      sender: "assistant",
-    };
-    messages.value.push(response);
-  }, 1000);
+  // setTimeout(() => {
+  //   const response: Chat = {
+  //     message: `You said: "${newMessage.message}"`,
+  //     sender: "assistant",
+  //   };
+  //   messages.value.push(response);
+  // }, 1000);
 };
 
 const openChatbot = () => {
