@@ -1,10 +1,14 @@
 <template>
-  <div class="fixed bottom-8 right-8 min-h-22 group flex items-end">
+  <div
+    class="fixed w-full min-h-22 group flex items-end justify-end transition-all duration-300 ease-in-out"
+    :class="{ 'bottom-4 right-4 md:bottom-8 md:right-8': !isOpen,
+              'bottom-0 right-0 md:bottom-8 md:right-8': isOpen }"
+  >
     <!-- Integral Box -->
     <div
       class="relative flex flex-col z-50 bg-zinc-100 chat-shadow rounded-4xl overflow-hidden transition-all duration-300 ease-in-out"
       :class="{
-        'h-[max(60vh,450px)] w-[max(30vw,450px)]': isOpen,
+        'w-full h-screen md:h-[max(65vh,550px)] md:w-[max(30vw,500px)] rounded-none md:rounded-4xl': isOpen,
         'size-18': !isOpen,
         'animate-bounce group-hover:animate-none': isFirstOpen,
         // 'animate-custom-floating-btn group-hover:no-animation': isFirstOpen,
@@ -32,7 +36,7 @@
       <!-- Header -->
       <div
         class="flex items-center gap-2 header-shadow px-6 py-3 transition-all duration-500 ease-in-out"
-        >
+      >
         <!-- Placeholder Icon -->
         <div class="size-16 min-w-16" />
         <!-- Badge -->
@@ -70,7 +74,6 @@
 </template>
 
 <script setup lang="ts">
-
 const chatbotStore = useChatbotStore();
 
 const { messages } = storeToRefs(chatbotStore);
