@@ -1,5 +1,5 @@
 <template>
-  <div id="chatbotContainer" class="px-6 h-full py-4 overflow-y-auto">
+  <div id="chatbotContainer" class="px-6 h-full min-h-full py-4 overflow-y-auto">
     <div v-for="(chat, index) in messages" :key="index" class="mb-2">
       <ChatUserMessage v-if="chat.sender === 'user'" :message="chat.message" />
       <ChatSystemMessage

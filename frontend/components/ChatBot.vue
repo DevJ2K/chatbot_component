@@ -57,7 +57,7 @@
 
       <!-- Chat Window -->
       <div
-        class="overflow-y-auto transition-all duration-500 ease-in-out"
+        class="overflow-y-auto transition-all duration-500 ease-in-out h-full"
         :class="{ 'opacity-0': !isOpen }"
       >
         <ChatContent :messages="messages" />
@@ -77,13 +77,6 @@
 const chatbotStore = useChatbotStore();
 
 const { messages } = storeToRefs(chatbotStore);
-
-for (let i = 0; i < 10; i++) {
-  messages.value.push({
-    message: `This is a sample message number ${i + 1}`,
-    sender: i % 2 === 0 ? "user" : "assistant",
-  });
-}
 
 const prompt = ref("");
 

@@ -14,9 +14,11 @@
     <button
       class="p-2 flex items-center justify-center size-10 text-white rounded-lg"
       :class="{
-        'bg-black hover:bg-zinc-900 cursor-pointer': prompt.trim().length > 0,
-        'bg-zinc-400': prompt.trim().length === 0,
+        'bg-black hover:bg-zinc-900 cursor-pointer':
+          prompt.trim().length > 0 && !chatbotIsTyping,
+        'bg-zinc-400': prompt.trim().length === 0 || chatbotIsTyping,
       }"
+      :disabled="chatbotIsTyping"
       @click="sendMessage()"
     >
       <!-- <Icon name="material-symbols:send-rounded" size="28" /> -->
@@ -33,13 +35,17 @@ const props = defineProps({
   },
 });
 
+const chatbotStore = useChatbotStore();
+
+const { isTyping: chatbotIsTyping } = storeToRefs(chatbotStore);
+
 const prompt = defineModel("prompt", {
   type: String,
   required: true,
 });
 
 const handleEnter = (event: Event) => {
-  if (prompt.value.length > 0) {
+  if (prompt.value.length > 0 && !chatbotIsTyping.value) {
     props.sendMessage();
     if (event != null && event.target != null) {
       // @ts-expect-error Blur exists on event.target
