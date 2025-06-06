@@ -5,8 +5,7 @@ from app.services.AI.RAG import RAG
 
 
 class ConversationHandler:
-    def __init__(self, RAG: RAG) -> None:
-        self.RAG = RAG
+    def __init__(self) -> None:
         prompts_folder = Path(__file__).parent.parent.parent / "prompts"
         self.__behavior_prompt = self.__load_prompt__(prompts_folder / "settings" / "behavior.txt")
         self.__rag_prompt = self.__load_prompt__(prompts_folder / "RAG" / "context_only.txt")
@@ -16,12 +15,12 @@ class ConversationHandler:
             content = f.read()
         return content
 
-    def get_context(self, input_messages: list[ChatMessage], query: str) -> list[ChatMessage]:
+    def get_context(rag: RAG, input_messages: list[ChatMessage], query: str, k_context: int = 2) -> list[ChatMessage]:
         messages = input_messages.copy()
         messages.append({
             "role": "user",
             "content": query,
-            "context": self.RAG.retrieve(query=query, k=2)
+            "context": rag.retrieve(query=query, k=k_context)
         })
         return messages
 
@@ -66,9 +65,9 @@ if __name__ == "__main__":
     data1 = Path(__file__).parent.parent.parent / "data" / "brut.txt"
     rag = RAG([data1])
 
-    conversationHandler = ConversationHandler(RAG=rag)
+    conversationHandler = ConversationHandler()
     print("Enrichment Conversation")
-    enrichment_conversation = conversationHandler.get_context(conversation, "SFT-R?")
+    enrichment_conversation = ConversationHandler.get_context(rag, conversation, "SFT-R?")
     pprint(enrichment_conversation)
     print(" ======== ")
     print("Send to LLM")
