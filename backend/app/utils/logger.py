@@ -41,3 +41,4 @@ def get_logger(level, name: str = "db.logger") -> logging.Logger:
 
 # Logger for the application
 main_logger = get_logger(logging.DEBUG, "main.logger")
+rag_logger = get_logger(logging.DEBUG, "RAG.logger")
