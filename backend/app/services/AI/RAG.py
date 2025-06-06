@@ -1,5 +1,6 @@
 from app.utils.logger import rag_logger
 from app.utils.Colors import BHMAG, RESET
+from app.exceptions.RAGError import RAGError
 from pathlib import Path
 from rich.progress import track
 import numpy as np
@@ -16,6 +17,8 @@ class RAG:
         # 1. Convert datasets to chunks
         self.chunks += self.__get_chunks__(datasets=datasets)
         rag_logger.info(f"Number of chunks: {len(self.chunks)}")
+        if len(self.chunks) == 0:
+            raise RAGError("Unable to setup RAG without chunks.")
 
         # 2. Load chunks into the vector database
         chunks_embeddings: np.ndarray = self.__load_chunks__(chunks=self.chunks)  # (n, d)
@@ -44,12 +47,16 @@ class RAG:
         return np.vstack(chunk_embeddings)
 
     def __similarity__(self, matrix: np.ndarray, vector: np.ndarray) -> np.ndarray:
-        return (matrix @ vector) / (np.linalg.norm(matrix) * np.linalg.norm(vector))
+        return (matrix @ vector) / (np.linalg.norm(matrix, axis=1) * np.linalg.norm(vector))
 
     def retrieve(self, query: str, k: int) -> list[str]:
         query_embedding: np.ndarray = np.array(ollama.embed(model=self.EMBEDDING_MODEL, input=query)['embeddings'][0])
+
         similarities: np.ndarray = self.__similarity__(self.chunk_embeddings, query_embedding)
         indexes: np.ndarray = np.argsort(similarities)[::-1][:k]
+
+        rag_logger.debug(f"Top similarities with : '{query}'\n{'\n'.join([f'{similarities[index]:.4f} - {self.chunks[index]}' for index in indexes])}")
+
         return [self.chunks[index] for index in indexes]
 
 
