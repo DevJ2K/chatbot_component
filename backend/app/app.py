@@ -6,7 +6,6 @@ from app.routes.chat import chat
 from app.utils.logger import main_logger
 
 
-
 main_app = FastAPI(title="MyApp", version="0.0.1")
 
 main_app.add_middleware(

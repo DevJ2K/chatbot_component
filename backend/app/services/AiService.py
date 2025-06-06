@@ -2,8 +2,8 @@ from app.services.AI.ConversationHandler import ConversationHandler
 from app.services.AI.RAG import RAG
 from app.models.core.ChatMessage import ChatMessage
 from app.models.core.LLM.MistralInput import MistralInput
-from typing import Generator
 from mistralai import Mistral, CompletionEvent
+
 
 class AiService:
     def __init__(self, rag: RAG, api_key: str, context_size: int = 3) -> None:
@@ -18,7 +18,7 @@ class AiService:
         self.model = "mistral-large-2402"
 
     def enrich(self, messages: list[ChatMessage], query: str) -> list[ChatMessage]:
-        return ConversationHandler.get_context(rag, messages, query, self.context_size)
+        return ConversationHandler.get_context(self.rag, messages, query, self.context_size)
 
     def ask(self, messages: list[ChatMessage]):
         conversation_handler = ConversationHandler()
@@ -31,8 +31,6 @@ class AiService:
         for event in response_stream:
             if isinstance(event, CompletionEvent) and event.data.choices[0].finish_reason is None:
                 yield event.data.choices[0].delta.content
-
-
 
 
 if __name__ == "__main__":
@@ -76,7 +74,3 @@ if __name__ == "__main__":
 
     for bloc in ai_service.ask(messages=conversation):
         print(bloc, end="", flush=True)
-
-
-
-
