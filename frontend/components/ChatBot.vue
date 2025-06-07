@@ -60,7 +60,13 @@
         class="overflow-y-auto transition-all duration-500 ease-in-out h-full"
         :class="{ 'opacity-0': !isOpen }"
       >
-        <ChatContent :messages="messages" />
+        <ChatContent v-if="messages.length > 0" :messages="messages" />
+        <div
+          v-else
+          class="flex items-center justify-center h-full text-zinc-500"
+        >
+          <p class="text-sm md:text-base">Start chatting with me to learn more about SFT-R!</p>
+        </div>
       </div>
       <!-- Chat bar -->
       <div
