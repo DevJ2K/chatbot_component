@@ -43,8 +43,8 @@
         <div class="flex flex-col" :class="{ 'opacity-0': !isOpen }">
           <span class="text-sm font-bold text-zinc-800">Assistant J2K</span>
           <span class="text-xs text-zinc-500"
-            >Powered by
-            <span class="text-orange-500 font-semibold">Mistral7B</span></span
+            >Powered by a
+            <span class="text-orange-500 font-semibold">Mistral LLM</span></span
           >
         </div>
         <button
@@ -89,20 +89,6 @@ const sendMessage = () => {
   const message = prompt.value.trim();
   prompt.value = "";
   chatbotStore.sendMessage(message);
-
-  // const newMessage: Chat = {
-  //   message: message,
-  //   sender: "user",
-  // };
-  // messages.value.push(newMessage);
-
-  // setTimeout(() => {
-  //   const response: Chat = {
-  //     message: `You said: "${newMessage.message}"`,
-  //     sender: "assistant",
-  //   };
-  //   messages.value.push(response);
-  // }, 1000);
 };
 
 const openChatbot = () => {

@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
-import eslintPlugin from "vite-plugin-eslint";
+// import eslintPlugin from "vite-plugin-eslint";
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-05-15",
@@ -23,6 +23,15 @@ export default defineNuxtConfig({
   },
   vite: {
     // clearScreen: true,
+    server: {
+      proxy: {
+        "/api": {
+          target: `${process.env.NUXT_API_BASE_URL}`,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
+      },
+    },
     plugins: [
       tailwindcss(),
       // eslintPlugin({
@@ -44,6 +53,9 @@ export default defineNuxtConfig({
         },
       },
     ],
+  },
+  routeRules: {
+    "/api/**": { proxy: `${process.env.NUXT_API_BASE_URL}/**` },
   },
   eslint: {
     config: {},

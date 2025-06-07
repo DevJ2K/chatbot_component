@@ -2,6 +2,8 @@ import type { Chat } from "~/types/Chat";
 
 const LOCAL_STORAGE_KEY = "conversation";
 
+const { fetchAiResponse } = useApi();
+
 const scrollDown = async (force: boolean = true) => {
   if (force) {
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -12,7 +14,7 @@ const scrollDown = async (force: boolean = true) => {
 
   if (!container || !bottom) return;
 
-  const threshold = 38; // px
+  const threshold = 40; // px
 
   const distanceToBottom =
     container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -31,32 +33,16 @@ const getConversation = () => {
   }
   console.log("Conversations loaded:", conversations);
   return conversations;
-  // return [
-  //     // {
-  //     //   message: "Hello, I have a question about your services.",
-  //     //   sender: "user",
-  //     // },
-  //     // {
-  //     //   message:
-  //     //     "Hello! How can I assist you today? <a>https://example.com</a>",
-  //     //   sender: "assistant",
-  //     // },
-  //     // {
-  //     //   message: "Whats wrong in my code?",
-  //     //   sender: "user",
-  //     // },
-  //     // {
-  //     //   message:
-  //     //     "Il y a plusieurs points potentiels à vérifier dans votre Dockerfile. Voici une analyse :\n\n1. **COPY app/ .** : Assurez-vous que le chemin `app/` est correct et qu'il contient tous les fichiers nécessaires pour que `npm install` fonctionne.\n\n2. **Permissions du script run.sh** : Si le script `/scripts/run.sh` n’est pas exécutable, le conteneur ne pourra pas l’exécuter. Vous pouvez ajouter une commande pour changer les permissions :\n   ```dockerfile\n   RUN chmod +x /scripts/run.sh\n   ```\n\n3. **Avant d'installer `sharp` (commenté)** : Si vous avez besoin de `sharp`, vous devez décommenter cette ligne et vous assurer que vous avez installé toutes les dépendances nécessaires. `sharp` peut nécessiter des bibliothèques spécifiques qui doivent être présentes dans l'image. Vous pouvez utiliser :\n   ```dockerfile\n   RUN apt-get update && apt-get install -y \\\n       libvips-dev \\\n       && npm install --platform=linux --arch=x64 sharp\n   ```\n\n",
-  //     //   sender: "assistant",
-  //     // },
-
-  // ] as Array<Chat>;
 };
 
 const saveConversation = (messages: Array<Chat>) => {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
-  console.log("Conversations saved:", messages);
+  const stringifiedMessages = JSON.stringify(messages);
+  if (stringifiedMessages.length < 3000000) {
+    localStorage.setItem(LOCAL_STORAGE_KEY, stringifiedMessages);
+    console.log("Conversations saved:", messages);
+  } else {
+    console.warn("Conversation too large to store. Please clear it.");
+  }
 }
 
 export const useChatbotStore = defineStore("chatbot", {
@@ -67,22 +53,54 @@ export const useChatbotStore = defineStore("chatbot", {
   actions: {
     async sendMessage(message: string) {
       if (!message.trim()) return;
+
+      this.isTyping = true;
       scrollDown(true);
 
-      this.messages.push({ message, sender: "user" });
-      this.isTyping = true;
+      this.messages.push({ content: message, role: "user", context: [] });
 
-      this.messages.push({ message: "", sender: "assistant" });
-      await new Promise((resolve) => setTimeout(resolve, 750));
-
-      const fakeResponse =
-        "This is a fake response to simulate the assistant's reply. It will be replaced with the actual response from the server.";
-
-      for (let i = 0; i < fakeResponse.length; i++) {
-        this.messages[this.messages.length - 1].message += fakeResponse[i];
-        scrollDown(false);
-        await new Promise((resolve) => setTimeout(resolve, 125));
+      const response = await fetch("/api/chat/enrich", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversation: this.messages.slice(0, -1),
+          prompt: message.trim(),
+         }),
+      });
+      if (!response.ok) {
+        console.error("Error response:", await response.json());
+        throw new Error("An error occurred while sending the message.");
       }
+      const responseJson = await response.json();
+
+      this.messages = responseJson.conversation as Array<Chat>;
+      saveConversation(this.messages);
+
+      this.messages.push({ content: "", role: "assistant", context: null });
+
+      const { abort, done } = await fetchAiResponse(
+				`/api/chat/ask`, {
+				method: 'POST',
+				body: JSON.stringify({
+          conversation: this.messages.slice(0, -1),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+			},
+				(token: string) => {
+					if (this.messages[this.messages.length - 1] != null) {
+						this.messages[this.messages.length - 1].content += token;
+					} else {
+						abort();
+						return;
+					}
+					scrollDown(false);
+				}
+			);
+			await done;
       this.isTyping = false;
       saveConversation(this.messages);
     },

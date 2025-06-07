@@ -1,4 +1,5 @@
 export interface Chat {
-  message: string;
-  sender: "user" | "assistant";
+  content: string;
+  role: "user" | "assistant";
+  context: Array<string> | null;
 }
